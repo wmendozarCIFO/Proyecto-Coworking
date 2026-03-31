@@ -11,16 +11,20 @@ def home(request):
     return render(request, 'core/home.html')
 
 def register(request):
+    next_url = request.GET.get('next') or request.POST.get('next')
+    
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
             messages.success(request, f'Bienvenido {user.first_name}! Registro completado.')
+            if next_url:
+                return redirect(next_url)
             return redirect('user_dashboard')
     else:
         form = UserRegistrationForm()
-    return render(request, 'core/register.html', {'form': form})
+    return render(request, 'core/register.html', {'form': form, 'next': next_url})
 
 class CustomOTPAuthenticationForm(OTPAuthenticationForm):
     def __init__(self, *args, **kwargs):
@@ -34,7 +38,11 @@ class CustomOTPAuthenticationForm(OTPAuthenticationForm):
 @login_required
 def user_dashboard(request):
     reservations = request.user.reservations.all().order_by('-date')
-    return render(request, 'core/dashboard.html', {'reservations': reservations})
+    guest_attendances = request.user.guest_attendances.all().order_by('-reservation__date')
+    return render(request, 'core/dashboard.html', {
+        'reservations': reservations,
+        'guest_attendances': guest_attendances
+    })
 
 @user_passes_test(lambda u: u.is_staff)
 def admin_dashboard(request):

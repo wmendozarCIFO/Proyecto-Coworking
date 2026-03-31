@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="flex-between mb-4">
-    <h1>Mis Reservas</h1>
+    <h1>Mis Reservas (Anfitrión)</h1>
     <a href="{% url 'booking_calendar' %}" class="btn btn-primary">Nueva Reserva</a>
 </div>
 
@@ -14,6 +14,7 @@
                 <th>Fecha</th>
                 <th>Hora</th>
                 <th>Area</th>
+                <th>Aforo</th>
                 <th>Estado</th>
                 <th>Acciones</th>
             </tr>
@@ -24,6 +25,12 @@
                 <td data-label="Fecha">{{ res.date }}</td>
                 <td data-label="Hora">{{ res.start_time }} - {{ res.end_time }}</td>
                 <td data-label="Area">{{ res.work_area.name }}</td>
+                <td data-label="Aforo">
+                    {{ res.attendances.count }} / {{ res.guest_capacity }}
+                    {% if res.attendances.count >= res.guest_capacity %}
+                        <span style="color: #991b1b; font-size: 0.8rem; display: block;">Completo</span>
+                    {% endif %}
+                </td>
                 <td data-label="Estado">
                     {% if res.is_active %}
                     <span style="color: var(--success); font-weight: 600;">Confirmada</span>
@@ -42,7 +49,47 @@
         </tbody>
     </table>
     {% else %}
-    <p class="text-center" style="padding: 2rem;">No tienes reservas activas.</p>
+    <p class="text-center" style="padding: 2rem;">No tienes reservas activas como anfitrión.</p>
+    {% endif %}
+</div>
+
+<div class="flex-between mb-4 mt-5">
+    <h1>Mis Asistencias (Invitado)</h1>
+</div>
+
+<div class="card">
+    {% if guest_attendances %}
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Area</th>
+                <th>Anfitrión</th>
+                <th>Confirmación</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for att in guest_attendances %}
+            <tr>
+                <td data-label="Fecha">{{ att.reservation.date }}</td>
+                <td data-label="Hora">{{ att.reservation.start_time }} - {{ att.reservation.end_time }}</td>
+                <td data-label="Area">{{ att.reservation.work_area.name }}</td>
+                <td data-label="Anfitrión">{{ att.reservation.user.get_full_name|default:att.reservation.user.username }}</td>
+                <td data-label="Confirmación">{{ att.confirmed_at|date:"d/m/Y H:i" }}</td>
+                <td data-label="Acciones" style="display: flex; justify-content: flex-end; gap: 0.5rem; width: 100%;">
+                    {% if att.reservation.is_active %}
+                    <a href="{% url 'cancel_attendance' att.id %}" class="btn btn-danger"
+                        style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Cancelar Asistencia</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="text-center" style="padding: 2rem;">No tienes invitaciones confirmadas a otras reservas.</p>
     {% endif %}
 </div>
 {% endblock %}

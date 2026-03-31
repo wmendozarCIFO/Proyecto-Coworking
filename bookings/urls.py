@@ -6,6 +6,8 @@ urlpatterns = [
     path('slots/<str:date_str>/', views.booking_slots, name='booking_slots'),
     path('book/', views.book_slot, name='book_slot'),
     path('cancel/<int:booking_id>/', views.cancel_booking, name='cancel_booking'),
+    path('cancel_attendance/<int:attendance_id>/', views.cancel_attendance, name='cancel_attendance'),
+    path('join/<uuid:token>/', views.join_reservation, name='join_reservation'),
     path('admin/list/', views.admin_bookings, name='admin_bookings'),
 
     # Rutas CRUD de Areas de trabajo para administradores

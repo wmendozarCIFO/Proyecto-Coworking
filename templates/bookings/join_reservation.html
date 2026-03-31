@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card mx-auto" style="max-width: 500px; padding: 2rem;">
+    <h2 class="text-center mb-4">Invitación a Reunión</h2>
+    
+    <div style="background-color: #f3f4f6; padding: 1.5rem; border-radius: var(--radius); margin-bottom: 1.5rem;">
+        <p><strong>Anfitrión:</strong> {{ reservation.user.get_full_name|default:reservation.user.username }}</p>
+        <p><strong>Lugar:</strong> {{ reservation.work_area.name }}</p>
+        <p><strong>Fecha:</strong> {{ reservation.date }}</p>
+        <p><strong>Horario:</strong> {{ reservation.start_time }} a {{ reservation.end_time }}</p>
+    </div>
+
+    {% if is_full %}
+        <div style="background-color: #fee2e2; color: #991b1b; padding: 1rem; border-radius: var(--radius); text-align: center; font-weight: bold;">
+            El aforo para esta reunión está completo.
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'user_dashboard' %}" class="btn btn-secondary">Ir al Panel</a>
+        </div>
+    {% else %}
+        <form method="post">
+            {% csrf_token %}
+            <p class="text-center mb-4 text-muted">Confirma tu asistencia usando el botón a continuación:</p>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Confirmar Asistencia</button>
+        </form>
+    {% endif %}
+</div>
+{% endblock %}

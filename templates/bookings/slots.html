@@ -27,11 +27,14 @@
                 <input type="hidden" name="start_time" value="{{ slot.start|time:'H:i:s' }}">
 
                 <label style="font-size: 0.9rem;">Seleccionar Area:</label>
-                <select name="area_id" style="margin-bottom: 0.5rem;">
+                <select name="area_id" style="margin-bottom: 0.5rem; width: 100%;" required>
                     {% for item in slot.areas %}
                     <option value="{{ item.area.id }}">{{ item.area.name }}</option>
                     {% endfor %}
                 </select>
+
+                <label style="font-size: 0.9rem; margin-top: 0.5rem; display: block;">Aforo de invitados (Máx 10):</label>
+                <input type="number" name="guest_capacity" min="1" max="10" value="1" style="width: 100%; margin-bottom: 1rem;" required>
 
                 <button type="submit" class="btn btn-primary" style="width: 100%;">Reservar</button>
             </form>

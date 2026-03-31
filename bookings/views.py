@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
-from .models import Reservation, WorkArea
+from .models import Reservation, WorkArea, GuestAttendance
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.urls import reverse
@@ -40,7 +40,7 @@ def booking_slots(request, date_str):
                 is_active=True
             ).count()
             
-            if count < area.capacity:
+            if count == 0:
                 area_slots.append({
                     'area': area,
                     'available': True
@@ -62,6 +62,13 @@ def book_slot(request):
         start_time_str = request.POST.get('start_time')
         area_id = request.POST.get('area_id')
         
+        try:
+            guest_capacity = int(request.POST.get('guest_capacity', 1))
+            if guest_capacity < 1: guest_capacity = 1
+            if guest_capacity > 10: guest_capacity = 10
+        except ValueError:
+            guest_capacity = 1
+
         date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
         start_time = datetime.datetime.strptime(start_time_str, '%H:%M:%S').time()
         # la hora de fin es inicio + 1 hora según la lógica
@@ -77,7 +84,7 @@ def book_slot(request):
             is_active=True
         ).count()
         
-        if count >= area.capacity:
+        if count >= 1:
             messages.error(request, 'Lo sentimos, este cupo acaba de ocuparse.')
             return redirect('booking_calendar')
             
@@ -86,14 +93,17 @@ def book_slot(request):
             work_area=area,
             date=date,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
+            guest_capacity=guest_capacity
         )
         
         # Enviar correo electrónico
         cancel_url = request.build_absolute_uri(reverse('cancel_booking', args=[reservation.id]))
+        join_url = request.build_absolute_uri(reverse('join_reservation', args=[reservation.join_token]))
+
         send_mail(
             'Confirmación de Reserva - Coworking',
-            f'Hola {request.user.first_name},\n\nTu reserva para el {date} de {start_time} a {end_time} en {area.name} está confirmada.\n\nPara cancelar: {cancel_url}',
+            f'Hola {request.user.first_name},\n\nTu reserva para el {date} de {start_time} a {end_time} en {area.name} está confirmada.\n\nPara invitar a tus acompañantes, comparte este enlace único (Aforo: {guest_capacity}):\n{join_url}\n\nPara cancelar: {cancel_url}',
             'noreply@coworking.com',
             [request.user.email],
             fail_silently=False,
@@ -103,6 +113,102 @@ def book_slot(request):
         return redirect('user_dashboard')
         
     return redirect('booking_calendar')
+
+@login_required
+def join_reservation(request, token):
+    reservation = get_object_or_404(Reservation, join_token=token, is_active=True)
+    
+    # Si es el anfitrión
+    if request.user == reservation.user:
+        messages.info(request, 'Eres el anfitrión de esta reserva.')
+        return redirect('user_dashboard')
+        
+    # Comprobar si ya está confirmado
+    if GuestAttendance.objects.filter(reservation=reservation, user=request.user).exists():
+        messages.info(request, 'Ya has confirmado tu asistencia a esta reserva.')
+        return redirect('user_dashboard')
+        
+    # Comprobar aforo
+    current_guests = GuestAttendance.objects.filter(reservation=reservation).count()
+    if current_guests >= reservation.guest_capacity:
+        messages.error(request, 'El aforo para esta reunión ya está completo.')
+        return render(request, 'bookings/join_reservation.html', {
+            'reservation': reservation,
+            'is_full': True
+        })
+        
+    if request.method == 'POST':
+        GuestAttendance.objects.create(reservation=reservation, user=request.user)
+        
+        # Enviar correo al invitado
+        send_mail(
+            '✅ Asistencia Confirmada - Coworking',
+            f'Hola {request.user.first_name},\n\nHas confirmado tu asistencia a la reunión del {reservation.date} de {reservation.start_time} a {reservation.end_time} en {reservation.work_area.name}, organizada por {reservation.user.get_full_name()}.\n\n¡Te esperamos!',
+            'noreply@coworking.com',
+            [request.user.email],
+            fail_silently=False,
+        )
+        
+        # Opcional: Enviar correo al anfitrión indicando que alguien se ha apuntado
+        new_total = current_guests + 1
+        status_msg = "Aforo Completo" if new_total >= reservation.guest_capacity else f"{new_total} de {reservation.guest_capacity} confirmados"
+        send_mail(
+            '📍 Nuevo invitado confirmado',
+            f'Hola {reservation.user.first_name},\n\nEl usuario {request.user.get_full_name()} ({request.user.email}) ha confirmado su asistencia a tu reserva del {reservation.date}.\n\nEstado actual: {status_msg}',
+            'noreply@coworking.com',
+            [reservation.user.email],
+            fail_silently=True,
+        )
+        
+        messages.success(request, 'Has confirmado tu asistencia correctamente.')
+        return redirect('user_dashboard')
+        
+    return render(request, 'bookings/join_reservation.html', {
+        'reservation': reservation,
+        'is_full': False
+    })
+
+@login_required
+def cancel_attendance(request, attendance_id):
+    attendance = get_object_or_404(GuestAttendance, id=attendance_id, user=request.user)
+    
+    # Calcular fecha y hora de la reserva
+    reservation_datetime = datetime.datetime.combine(attendance.reservation.date, attendance.reservation.start_time)
+    if timezone.is_naive(reservation_datetime):
+        reservation_datetime = timezone.make_aware(reservation_datetime)
+        
+    # Comprobar si faltan menos de 30 minutos
+    if timezone.now() + datetime.timedelta(minutes=30) > reservation_datetime:
+        messages.error(request, 'El plazo para cancelar (hasta 30 minutos antes de la reunión) ha expirado.')
+    else:
+        # Guardar info para correos
+        host = attendance.reservation.user
+        guest = request.user
+        res_date = attendance.reservation.date
+        res_start = attendance.reservation.start_time
+        
+        attendance.delete()
+        
+        # Enviar correo al invitado
+        send_mail(
+            'Cancelación de Asistencia Confirmada',
+            f'Hola {guest.first_name},\n\nHas cancelado exitosamente tu asistencia a la reunión del {res_date} a las {res_start}.\n',
+            'noreply@coworking.com',
+            [guest.email],
+            fail_silently=True,
+        )
+        
+        # Notificar al anfitrión
+        send_mail(
+            '⚠️ Un invitado ha cancelado su asistencia',
+            f'Hola {host.first_name},\n\nEl invitado {guest.get_full_name()} ({guest.email}) ha cancelado su asistencia a tu reserva del {res_date} a las {res_start}. Un hueco ha quedado libre.\n',
+            'noreply@coworking.com',
+            [host.email],
+            fail_silently=True,
+        )
+        messages.success(request, 'Has cancelado tu asistencia correctamente. Tu hueco ha sido liberado.')
+
+    return redirect('user_dashboard')
 
 @login_required
 def cancel_booking(request, booking_id):
