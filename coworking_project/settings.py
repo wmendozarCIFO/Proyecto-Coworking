@@ -9,9 +9,9 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-import os  # <--- ESTO ES LO QUE FALTA
+import os  
 from pathlib import Path
-from dotenv import load_dotenv # Si estás usando python-dotenv
+from dotenv import load_dotenv 
 
 # Carga las variables del archivo .env
 load_dotenv()
