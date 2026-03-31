@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Panel de Administración</h1>
+
+<div class="grid grid-cols-2 mt-4">
+    <div class="card">
+        <h3>Gestión de Usuarios</h3>
+        <p>Administrar registros, permisos y datos de usuarios.</p>
+        <div class="mt-4">
+            <a href="{% url 'admin_users' %}" class="btn btn-primary">Gestionar Usuarios</a>
+        </div>
+    </div>
+    <div class="card">
+        <h3>Gestión de Reservas</h3>
+        <p>Ver agenda, cancelar reservas y gestionar disponibilidad.</p>
+        <div class="mt-4">
+            <a href="{% url 'admin_bookings' %}" class="btn btn-primary">Gestionar Reservas</a>
+        </div>
+    </div>
+    <div class="card">
+        <h3>Areas de Trabajo</h3>
+        <p>Configurar espacios y capacidades.</p>
+        <div class="mt-4">
+            <a href="{% url 'admin_work_areas' %}" class="btn btn-primary">Gestionar Areas</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

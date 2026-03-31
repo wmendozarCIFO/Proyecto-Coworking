@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% block content %}
+<div class="text-center" style="padding: 4rem 2rem; margin-bottom: 1rem; border-radius: var(--radius); background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url('{% static "images/fondo_home.jpg" %}'); background-size: cover; background-position: center; box-shadow: var(--shadow-lg);">
+    <h1 style="font-size: 3rem; margin-bottom: 1rem; color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Espacio de Trabajo Premium</h1>
+    <p style="font-size: 1.15rem; color: #f3f4f6; font-weight: 500; margin-bottom: 1.5rem; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Reserva tu lugar en el entorno más innovador y productivo.</p>
+
+    <div style="display: flex; gap: 1rem; justify-content: center;">
+        {% if not user.is_authenticated %}
+        <a href="{% url 'register' %}" class="btn btn-primary" style="padding: 0.75rem 1.5rem; font-size: 1rem; box-shadow: 0 4px 6px rgba(79, 70, 229, 0.3);">Empezar Ahora</a>
+        <a href="{% url 'login' %}" class="btn btn-secondary" style="padding: 0.75rem 1.5rem; font-size: 1rem;">Iniciar Sesión</a>
+        {% else %}
+        <a href="{% url 'user_dashboard' %}" class="btn btn-primary" style="padding: 0.75rem 1.5rem; font-size: 1rem; box-shadow: 0 4px 6px rgba(79, 70, 229, 0.3);">Ir a mi Panel</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="grid grid-cols-3" style="margin-top: 1rem;">
+    <div class="card text-center">
+        <h3 style="color: var(--secondary);">Alta Velocidad</h3>
+        <p>Conexión de fibra óptica dedicada para que nunca pares.</p>
+    </div>
+    <div class="card text-center">
+        <h3 style="color: var(--secondary);">Sala Premium</h3>
+        <p>Espacio diseñado para reuniones de alto impacto.</p>
+    </div>
+    <div class="card text-center">
+        <h3 style="color: var(--secondary);">Comunidad</h3>
+        <p>Conecta con profesionales líderes en tu sector.</p>
+    </div>
+</div>
+{% endblock %}

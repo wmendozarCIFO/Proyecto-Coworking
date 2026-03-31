@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex-between mb-4">
+    <h1>Gestión de Usuarios</h1>
+    <a href="{% url 'admin_user_create' %}" class="btn btn-primary">Crear Usuario</a>
+</div>
+
+<div class="card">
+    <form method="get" class="mb-4" style="display: flex; gap: 0.5rem;">
+        <input type="text" name="q" placeholder="Buscar por Nombre, DNI, Email..." value="{{ query|default:'' }}">
+        <button type="submit" class="btn btn-primary">Buscar</button>
+        {% if query %}
+        <a href="{% url 'admin_users' %}" class="btn btn-secondary">Limpiar</a>
+        {% endif %}
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Nombre</th>
+                <th>DNI</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td data-label="Username">{{ u.username }}</td>
+                <td data-label="Nombre">{{ u.first_name }} {{ u.last_name }}</td>
+                <td data-label="DNI">{{ u.dni }}</td>
+                <td data-label="Email">{{ u.email }}</td>
+                <td data-label="Rol">
+                    {% if u.is_superuser %}SuperAdmin{% elif u.is_staff %}Admin{% else %}Usuario{% endif %}
+                </td>
+                <td data-label="Acciones" style="display: flex; gap: 0.5rem; justify-content: flex-end; width: 100%;">
+                    <a href="{% url 'admin_user_edit' u.id %}" class="btn btn-secondary" style="padding: 0.2rem 0.6rem; font-size: 0.85rem;">Editar</a>
+                    {% if u.id != request.user.id %}
+                        <a href="{% url 'admin_user_delete' u.id %}" class="btn btn-primary" style="padding: 0.2rem 0.6rem; font-size: 0.85rem; background-color: #dc3545; border-color: #dc3545;">Eliminar</a>
+                    {% else %}
+                        <button disabled class="btn btn-secondary" style="padding: 0.2rem 0.6rem; font-size: 0.85rem; opacity: 0.5; cursor: not-allowed;">Eliminar</button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

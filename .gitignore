@@ -1,0 +1,21 @@
+# Entornos virtuales
+venv/
+.venv/
+venv_new/
+
+# Archivos de configuración sensible
+.env
+
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+
+# Base de datos local (SQLite)
+db.sqlite3
+
+# Archivos de medios (imágenes subidas por usuarios)
+media/
+
+# Carpetas de editores
+.vscode/
+.idea/

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex-between mb-4">
+    <h1>Horarios para {{ date }}</h1>
+    <a href="{% url 'booking_calendar' %}" class="btn btn-secondary">Volver al Calendario</a>
+</div>
+
+<div class="card">
+    {% if slots %}
+    <div class="grid grid-cols-2">
+        {% for slot in slots %}
+        <div style="border: 1px solid var(--border-color); padding: 1rem; border-radius: var(--radius);">
+            <h3 style="margin-bottom: 0.5rem;">{{ slot.start }} - {{ slot.end }}</h3>
+            <div style="margin-bottom: 1rem;">
+                {% for item in slot.areas %}
+                <span
+                    style="display: inline-block; background-color: #d1fae5; color: #065f46; padding: 0.2rem 0.5rem; border-radius: 999px; font-size: 0.8rem; margin-right: 0.5rem;">
+                    {{ item.area.name }}
+                </span>
+                {% endfor %}
+            </div>
+
+            <form action="{% url 'book_slot' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="date" value="{{ date|date:'Y-m-d' }}">
+                <input type="hidden" name="start_time" value="{{ slot.start|time:'H:i:s' }}">
+
+                <label style="font-size: 0.9rem;">Seleccionar Area:</label>
+                <select name="area_id" style="margin-bottom: 0.5rem;">
+                    {% for item in slot.areas %}
+                    <option value="{{ item.area.id }}">{{ item.area.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Reservar</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-center">No hay horarios disponibles para este día.</p>
+    {% endif %}
+</div>
+{% endblock %}

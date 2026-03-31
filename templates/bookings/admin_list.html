@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Gestión de Reservas</h1>
+
+<div class="card mt-4">
+    <table>
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Area</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for res in reservations %}
+            <tr>
+                <td>{{ res.user.get_full_name }} ({{ res.user.username }})</td>
+                <td>{{ res.date }}</td>
+                <td>{{ res.start_time }} - {{ res.end_time }}</td>
+                <td>{{ res.work_area.name }}</td>
+                <td>
+                    {% if res.is_active %}
+                    <span style="color: var(--success); font-weight: 600;">Activa</span>
+                    {% else %}
+                    <span style="color: var(--danger);">Cancelada</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if res.is_active %}
+                    <a href="{% url 'cancel_booking' res.id %}" class="btn btn-danger"
+                        style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">Cancelar</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Gestión de Áreas de Trabajo</h2>
+        <div>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Volver al Dashboard</a>
+            <a href="{% url 'admin_work_area_add' %}" class="btn btn-primary">+ Nueva Área</a>
+        </div>
+    </div>
+
+    <div class="card p-4">
+        {% if areas %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Capacidad</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for area in areas %}
+                    <tr>
+                        <td>{{ area.id }}</td>
+                        <td>{{ area.name }}</td>
+                        <td>{{ area.capacity }} pers.</td>
+                        <td>
+                            <a href="{% url 'admin_work_area_edit' area.id %}" class="btn btn-secondary btn-sm" style="margin-right:0.5rem">Editar</a>
+                            <a href="{% url 'admin_work_area_delete' area.id %}" class="btn btn-danger btn-sm" style="background-color: var(--danger); border: none; padding: 0.25rem 0.5rem; color: white; border-radius: 4px; text-decoration: none;">Eliminar</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No hay áreas de trabajo configuradas actualmente.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

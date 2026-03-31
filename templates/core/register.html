@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width: 600px;">
+    <div class="card">
+        <h2 class="text-center mb-4">Registro de Usuario</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group" style="margin-bottom: 1rem;">
+                {% if field.name == 'terms_accepted' or field.name == 'news_accepted' %}
+                    <div style="display: flex; align-items: flex-start; gap: 10px; margin-top: 15px;">
+                        <div style="padding-top: 3px;">{{ field }}</div>
+                        <label for="{{ field.id_for_label }}" style="margin: 0; font-weight: normal; font-size: 0.9rem; line-height: 1.4;">
+                            {{ field.label|safe }}
+                        </label>
+                    </div>
+                {% else %}
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                {% endif %}
+                
+                {% if field.help_text %}
+                <small style="color: #6c757d; display: block; margin-top: 0.25rem;">{{ field.help_text }}</small>
+                {% endif %}
+                {% if field.errors %}
+                <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">
+                    {{ field.errors }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <hr style="margin: 20px 0;">
+            <div class="legal-info" style="font-size: 0.8rem; color: #6c757d; padding: 15px; background-color: #f8f9fa; border-radius: 5px; margin-bottom: 20px; text-align: left; line-height: 1.5; border: 1px solid #e9ecef;">
+                <strong style="color: #343a40; display: block; margin-bottom: 8px;">Información Básica sobre Protección de Datos:</strong>
+                <strong>Responsable:</strong> CIFO LA VIOLETA<br>
+                <strong>Finalidad:</strong> Gestionar tu cuenta, reservas de espacios y, si das tu consentimiento, envío de novedades.<br>
+                <strong>Legitimación:</strong> Ejecución de un contrato y consentimiento del interesado.<br>
+                <strong>Destinatarios:</strong> Los datos se tratarán internamente y no se cederán a terceros, salvo obligación legal.<br>
+                <strong>Derechos:</strong> Puedes acceder, rectificar o suprimir tus datos, además de otros derechos, como se explica en la <a href="/politica-privacidad/" target="_blank">Política de Privacidad</a>.
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Registrarse</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

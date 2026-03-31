@@ -1,0 +1,9 @@
+No_Me_La_Se
+¿Por qué no llegaban los correos?
+Había dos motivos principales por los que los correos no llegaban a la bandeja de entrada del usuario:
+
+Configuración en Modo Desarrollo: En tu archivo 
+
+settings.py
+, el sistema de envío de correos estaba configurado para usar la consola (console.EmailBackend). Esto significa que en lugar de enviar un correo real por internet, Django simplemente imprimía el texto del correo en tu terminal (donde tienes corriendo el runserver).
+Faltaba añadir el código en otras acciones: El código para enviar el correo (send_mail()) solo estaba programado para ejecutarse cuando se creaba la reserva. No había código para enviar el correo cuando se eliminaba/cancelaba. (Nota: Actualmente tu aplicación no tiene una función para "modificar" reservas, de momento solo se pueden crear y cancelar).

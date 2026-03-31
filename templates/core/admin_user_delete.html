@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 2rem auto; text-align: center; padding: 2rem;">
+    <h2 style="color: var(--text-dark); margin-bottom: 1.5rem;">Confirmar Eliminación de Usuario</h2>
+    
+    <p style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 1rem;">
+        ¿Estás completamente seguro de que deseas eliminar a <strong>{{ user_to_delete.first_name }} {{ user_to_delete.last_name }}</strong> ({{ user_to_delete.username }})?
+    </p>
+    
+    <div style="background-color: #fff3f3; border-left: 4px solid #dc3545; padding: 1rem; margin-bottom: 2rem; text-align: left;">
+        <strong>⚠️ Advertencia:</strong>
+        <p style="margin: 0; font-size: 0.9rem; color: #dc3545;">Esta acción es irreversible. Se eliminarán permanentemente todos los datos de este usuario, incluyendo sus reservas, perfil y configuraciones de 2FA.</p>
+    </div>
+    
+    <form method="post" style="display: flex; justify-content: center; gap: 1rem;">
+        {% csrf_token %}
+        <a href="{% url 'admin_users' %}" class="btn btn-secondary">Cancelar y Volver</a>
+        <button type="submit" class="btn btn-primary" style="background-color: #dc3545; border-color: #dc3545; color: white;">Sí, Eliminar Permanentemente</button>
+    </form>
+</div>
+{% endblock %}

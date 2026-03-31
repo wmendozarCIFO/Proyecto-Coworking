@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coworking Premium</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body style="background-image: url('{% static "images/fondo_home.jpg" %}'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;">
+    <style>
+        /* Fondo semi-transparente para que el contenido principal siga siendo legible sobre la imagen */
+        .main-content > .container {
+            background-color: rgba(255, 255, 255, 0.92);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            min-height: 80vh;
+        }
+        header {
+            background-color: rgba(255, 255, 255, 0.95) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">
+                    <a href="{% url 'home' %}">COWORKING<span style="color:var(--text-main);">SPACE</span></a>
+                </div>
+                <!-- <button class="menu-toggle" aria-expanded="false" aria-controls="primary-navigation" aria-label="Abrir menú">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="6" x2="21" y2="6" class="line-top"></line>
+                        <line x1="3" y1="12" x2="21" y2="12" class="line-middle"></line>
+                        <line x1="3" y1="18" x2="21" y2="18" class="line-bottom"></line>
+                    </svg>
+                </button> -->
+                <div class="nav-links" id="primary-navigation" role="navigation">
+                    {% if user.is_authenticated %}
+                        <li>Hola, {{ user.first_name }} {{ user.last_name | default:user.username }}</li>
+                        {% if user.is_staff %}
+                             <a href="{% url 'admin_dashboard' %}" class="btn btn-primary">Panel Admin</a>
+                        {% endif %}
+                        <a href="{% url 'user_dashboard' %}" class="btn btn-secondary">Mis Reservas</a>
+                        <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-secondary">Cerrar Sesión</button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-secondary">Entrar</a>
+                        <a href="{% url 'register' %}" class="btn btn-primary">Registrarse</a>
+                    {% endif %}
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Coworking Space. Todos los derechos reservados.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.querySelector('.menu-toggle');
+            const nav = document.getElementById('primary-navigation');
+
+            if (toggle && nav) {
+                toggle.addEventListener('click', () => {
+                    const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+                    toggle.setAttribute('aria-expanded', !isExpanded);
+                    nav.classList.toggle('nav-active');
+                    toggle.classList.toggle('is-active');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

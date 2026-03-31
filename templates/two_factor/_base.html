@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="two-factor-container" style="max-width: 500px; margin: 2rem auto; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <style>
+        .two-factor-container h1, .two-factor-container h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+            text-align: center;
+        }
+        .two-factor-container p {
+            margin-bottom: 1.5rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+        .two-factor-container form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .two-factor-container label {
+            font-weight: 500;
+        }
+        .two-factor-container input[type="text"],
+        .two-factor-container input[type="password"],
+        .two-factor-container input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .two-factor-container button, 
+        .two-factor-container input[type="submit"] {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary-color, #007bff);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .two-factor-container button:hover,
+        .two-factor-container input[type="submit"]:hover {
+            opacity: 0.9;
+        }
+        .two-factor-container .btn-secondary {
+            background-color: var(--secondary-color, #6c757d);
+        }
+        .two-factor-container img {
+            display: block;
+            margin: 1rem auto;
+            max-width: 100%;
+            height: auto;
+        }
+        .two-factor-container ul.errorlist {
+            color: red;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+    </style>
+    
+    {% block two_factor_content %}
+        {# Algunos templates de django-two-factor-auth usan two_factor_content, y la mayoria usan content #}
+    {% endblock %}
+</div>
+{% endblock %}

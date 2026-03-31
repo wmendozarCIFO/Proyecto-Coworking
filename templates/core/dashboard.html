@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex-between mb-4">
+    <h1>Mis Reservas</h1>
+    <a href="{% url 'booking_calendar' %}" class="btn btn-primary">Nueva Reserva</a>
+</div>
+
+<div class="card">
+    {% if reservations %}
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Area</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for res in reservations %}
+            <tr>
+                <td data-label="Fecha">{{ res.date }}</td>
+                <td data-label="Hora">{{ res.start_time }} - {{ res.end_time }}</td>
+                <td data-label="Area">{{ res.work_area.name }}</td>
+                <td data-label="Estado">
+                    {% if res.is_active %}
+                    <span style="color: var(--success); font-weight: 600;">Confirmada</span>
+                    {% else %}
+                    <span style="color: var(--danger);">Cancelada</span>
+                    {% endif %}
+                </td>
+                <td data-label="Acciones" style="display: flex; justify-content: flex-end; gap: 0.5rem; width: 100%;">
+                    {% if res.is_active %}
+                    <a href="{% url 'cancel_booking' res.id %}" class="btn btn-danger"
+                        style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Cancelar</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="text-center" style="padding: 2rem;">No tienes reservas activas.</p>
+    {% endif %}
+</div>
+{% endblock %}
