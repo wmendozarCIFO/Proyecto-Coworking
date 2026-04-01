@@ -30,6 +30,14 @@ class Reservation(models.Model):
     # Estado simple para manejar la cancelación
     is_active = models.BooleanField(default=True)
 
+    @property
+    def is_finished(self):
+        from django.utils import timezone
+        import datetime
+        end_datetime = datetime.datetime.combine(self.date, self.end_time)
+        aware_end_datetime = timezone.make_aware(end_datetime, timezone.get_default_timezone())
+        return timezone.now() > aware_end_datetime
+
     def __str__(self):
         return f"{self.user} - {self.work_area} - {self.date}"
 

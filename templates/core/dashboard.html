@@ -8,7 +8,7 @@
 
 <div class="card">
     {% if reservations %}
-    <table>
+    <table class="data-table display w-100">
         <thead>
             <tr>
                 <th>Fecha</th>
@@ -36,14 +36,16 @@
                     </div>
                 </td>
                 <td data-label="Estado">
-                    {% if res.is_active %}
-                    <span style="color: var(--success); font-weight: 600;">Confirmada</span>
-                    {% else %}
+                    {% if not res.is_active %}
                     <span style="color: var(--danger);">Cancelada</span>
+                    {% elif res.is_finished %}
+                    <span style="color: #6c757d; font-weight: 600;">Finalizada</span>
+                    {% else %}
+                    <span style="color: var(--success); font-weight: 600;">Confirmada</span>
                     {% endif %}
                 </td>
                 <td data-label="Acciones" style="display: flex; justify-content: flex-end; gap: 0.5rem; width: 100%;">
-                    {% if res.is_active %}
+                    {% if res.is_active and not res.is_finished %}
                     <a href="{% url 'cancel_booking' res.id %}" class="btn btn-danger"
                         style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Cancelar</a>
                     {% endif %}
@@ -63,7 +65,7 @@
 
 <div class="card">
     {% if guest_attendances %}
-    <table>
+    <table class="data-table display w-100">
         <thead>
             <tr>
                 <th>Fecha</th>
@@ -83,7 +85,7 @@
                 <td data-label="Anfitrión">{{ att.reservation.user.get_full_name|default:att.reservation.user.username }}</td>
                 <td data-label="Confirmación">{{ att.confirmed_at|date:"d/m/Y H:i" }}</td>
                 <td data-label="Acciones" style="display: flex; justify-content: flex-end; gap: 0.5rem; width: 100%;">
-                    {% if att.reservation.is_active %}
+                    {% if att.reservation.is_active and not att.reservation.is_finished %}
                     <a href="{% url 'cancel_attendance' att.id %}" class="btn btn-danger"
                         style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Cancelar Asistencia</a>
                     {% endif %}
@@ -150,4 +152,111 @@
         }
     }
 </script>
+
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css"/>
+<style>
+    .data-table thead th {
+        position: relative;
+    }
+    .data-table thead input,
+    .data-table thead select {
+        width: 100%;
+        padding: 4px;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-family: inherit;
+        font-size: 0.8rem;
+        margin-top: 5px;
+        font-weight: normal;
+    }
+    .dataTables_wrapper .dt-buttons {
+        margin-bottom: 1rem;
+    }
+    .dt-button.btn.btn-primary {
+        background-color: var(--primary) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: var(--radius) !important;
+        padding: 0.5rem 1rem !important;
+        font-weight: 600 !important;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('.data-table').each(function() {
+        var tableNode = $(this);
+        
+        var table = tableNode.DataTable({
+            destroy: true,
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'pdfHtml5',
+                    text: 'Exportar a PDF',
+                    className: 'btn btn-primary',
+                    exportOptions: {
+                        columns: ':not(:last-child)' // Exclude "Acciones" column
+                    }
+                }
+            ],
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json',
+            },
+            initComplete: function() {
+                this.api().columns().every(function() {
+                    var column = this;
+                    var headerNode = $(column.header());
+                    var title = headerNode.text().trim();
+                    
+                    if (title !== 'Acciones') {
+                        var filterElement;
+                        if (title === 'Estado' || title === 'Area') {
+                            filterElement = $('<select><option value="">Todos</option></select>')
+                                .on('change', function(e) {
+                                    e.stopPropagation();
+                                    var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                                    // Use exact match since estado has labels like 'Cancelada', 'Finalizada'
+                                    column.search(val ? '^' + val + '$' : '', true, false).draw();
+                                });
+                            
+                            column.data().unique().sort().each(function(d, j) {
+                                var textData = $('<div>' + d + '</div>').text().trim(); // Strip HTML
+                                if (textData) {
+                                    filterElement.append('<option value="' + textData + '">' + textData + '</option>');
+                                }
+                            });
+                        } else {
+                            filterElement = $('<input type="text" placeholder="Filtrar..." />')
+                                .on('keyup change clear', function(e) {
+                                    e.stopPropagation();
+                                    if (column.search() !== this.value) {
+                                        column.search(this.value).draw();
+                                    }
+                                });
+                        }
+                        
+                        filterElement.on('click', function(e) { e.stopPropagation(); });
+                        headerNode.append('<br>').append(filterElement);
+                    }
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
 {% endblock %}

@@ -7,6 +7,7 @@
     <title>Coworking Premium</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
 </head>
 <body style="background-image: url('{% static "images/fondo_home.jpg" %}'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;">
     <style>
@@ -90,6 +91,31 @@
                 });
             }
         });
+
+        // Prevención de doble envío de formularios (evita SessionInterrupted en login y duplicados)
+        document.addEventListener('submit', function(e) {
+            if (e.target && e.target.tagName === 'FORM') {
+                const submitBtn = e.target.querySelector('button[type="submit"], input[type="submit"]');
+                if (submitBtn) {
+                    // Timeout allows the form to submit before disabling the button
+                    setTimeout(() => {
+                        submitBtn.disabled = true;
+                        if (submitBtn.tagName === 'BUTTON') {
+                            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right:0.5rem; display:inline-block; width:1rem; height:1rem; border:0.2em solid currentColor; border-right-color:transparent; border-radius:50%; animation:spinner-border .75s linear infinite;"></span>Cargando...';
+                        }
+                    }, 0);
+                }
+            }
+        });
+        
+        // Estilo básico para el spinner (keyframes) se inyecta por si no existe
+        if (!document.getElementById('spinner-style')) {
+            const style = document.createElement('style');
+            style.id = 'spinner-style';
+            style.innerHTML = '@keyframes spinner-border { to { transform: rotate(360deg); } }';
+            document.head.appendChild(style);
+        }
     </script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
