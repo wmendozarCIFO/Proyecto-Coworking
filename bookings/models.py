@@ -50,3 +50,17 @@ class GuestAttendance(models.Model):
 
     def __str__(self):
         return f"{self.user} -> {self.reservation}"
+
+class NotificationLog(models.Model):
+    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='notifications')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    notification_type = models.CharField(max_length=10) # '24H', '12H', '1H'
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('reservation', 'user', 'notification_type')
+        verbose_name = 'Registro de Notificación'
+        verbose_name_plural = 'Registros de Notificaciones'
+
+    def __str__(self):
+        return f"{self.notification_type} - {self.user} - {self.reservation}"

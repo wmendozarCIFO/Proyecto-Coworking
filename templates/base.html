@@ -42,6 +42,7 @@
                         {% if user.is_staff %}
                              <a href="{% url 'admin_dashboard' %}" class="btn btn-primary">Panel Admin</a>
                         {% endif %}
+                        <a href="{% url 'profile_edit' %}" class="btn btn-secondary" style="border: none;">Mi Perfil</a>
                         <a href="{% url 'user_dashboard' %}" class="btn btn-secondary">Mis Reservas</a>
                         <form action="{% url 'logout' %}" method="post" style="display:inline;">
                             {% csrf_token %}

@@ -6,6 +6,9 @@ from django.db.models import Q
 
 from users.forms import UserRegistrationForm, UserUpdateForm
 from django_otp.forms import OTPAuthenticationForm
+from django_otp import match_token
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
 
 def home(request):
     return render(request, 'core/home.html')
@@ -116,3 +119,62 @@ def admin_user_edit(request, user_id):
     else:
         form = UserUpdateForm(instance=user_to_edit)
     return render(request, 'core/admin_user_form.html', {'form': form, 'action': 'Editar', 'user_to_edit': user_to_edit})
+
+@login_required
+def profile_verify_2fa(request):
+    """
+    Pide el token 2FA al usuario antes de permitirle entrar a su perfil.
+    """
+    if request.method == 'POST':
+        token = request.POST.get('token')
+        device = match_token(request.user, token)
+        if device:
+            # Marcamos en la sesión que ya verificó el 2FA para el perfil
+            request.session['2fa_verified_for_profile'] = True
+            return redirect('profile_edit')
+        else:
+            messages.error(request, 'El código 2FA ingresado es incorrecto.')
+            
+    return render(request, 'core/profile_verify_2fa.html')
+
+@login_required
+def profile_edit(request):
+    """
+    Permite al usuario cambiar su correo y contraseña.
+    Requiere haber validado el 2FA en esta sesión (a través de profile_verify_2fa).
+    """
+    if not request.session.get('2fa_verified_for_profile'):
+        messages.info(request, 'Por seguridad, debes verificar tu código 2FA antes de acceder al perfil.')
+        return redirect('profile_verify_2fa')
+        
+    if request.method == 'POST':
+        if 'update_email' in request.POST:
+            email = request.POST.get('email')
+            if email:
+                request.user.email = email
+                request.user.save()
+                messages.success(request, 'Dirección de correo actualizada correctamente.')
+            else:
+                messages.error(request, 'El campo de correo no puede estar vacío.')
+            return redirect('profile_edit')
+            
+        elif 'update_password' in request.POST:
+            pwd_form = PasswordChangeForm(request.user, request.POST)
+            if pwd_form.is_valid():
+                user = pwd_form.save()
+                update_session_auth_hash(request, user)  # Mantiene al usuario con la sesión iniciada
+                messages.success(request, 'Contraseña actualizada correctamente.')
+                # Invalida el acceso al perfil si cambia la contraseña (opcional de seguridad)
+                # request.session['2fa_verified_for_profile'] = False 
+                return redirect('profile_edit')
+            else:
+                for field_errors in pwd_form.errors.values():
+                    for error in field_errors:
+                        messages.error(request, error)
+    else:
+        pwd_form = PasswordChangeForm(request.user)
+        
+    return render(request, 'core/profile_edit.html', {
+        'pwd_form': pwd_form,
+    })
+

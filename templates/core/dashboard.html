@@ -26,10 +26,14 @@
                 <td data-label="Hora">{{ res.start_time }} - {{ res.end_time }}</td>
                 <td data-label="Area">{{ res.work_area.name }}</td>
                 <td data-label="Aforo">
-                    {{ res.attendances.count }} / {{ res.guest_capacity }}
-                    {% if res.attendances.count >= res.guest_capacity %}
-                        <span style="color: #991b1b; font-size: 0.8rem; display: block;">Completo</span>
-                    {% endif %}
+                    <div style="cursor: pointer;" onclick="openModal('attendees-modal-{{ res.id }}')">
+                        <span style="color: var(--primary); font-weight: bold; text-decoration: underline;">
+                            {{ res.attendances.count }} / {{ res.guest_capacity }}
+                        </span>
+                        {% if res.attendances.count >= res.guest_capacity %}
+                            <span style="color: #991b1b; font-size: 0.8rem; display: block; margin-top: 0.2rem;">Completo</span>
+                        {% endif %}
+                    </div>
                 </td>
                 <td data-label="Estado">
                     {% if res.is_active %}
@@ -92,4 +96,58 @@
     <p class="text-center" style="padding: 2rem;">No tienes invitaciones confirmadas a otras reservas.</p>
     {% endif %}
 </div>
+<!-- Modals para asistentes -->
+{% for res in reservations %}
+<div id="attendees-modal-{{ res.id }}" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
+    <div style="background-color: #fff; padding: 2rem; border-radius: var(--radius); width: 90%; max-width: 500px; position: relative;">
+        <span style="position: absolute; right: 1.5rem; top: 1rem; font-size: 1.5rem; cursor: pointer; color: #666;" onclick="closeModal('attendees-modal-{{ res.id }}')">&times;</span>
+        <h3 style="margin-bottom: 1rem; padding-right: 2rem;">Asistentes Confirmados</h3>
+        <div style="background-color: #f3f4f6; padding: 1rem; border-radius: var(--radius); margin-bottom: 1rem; font-size: 0.9rem;">
+            <strong>Lugar:</strong> {{ res.work_area.name }}<br>
+            <strong>Fecha y Hora:</strong> {{ res.date|date:"d/m/Y" }} de {{ res.start_time|time:"H:i" }} a {{ res.end_time|time:"H:i" }}
+        </div>
+        
+        {% if res.attendances.count > 0 %}
+            <ul style="list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto;">
+            {% for attendance in res.attendances.all %}
+                <li style="padding: 1rem 0; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">
+                        {{ attendance.user.first_name|first|default:attendance.user.username|first|upper }}
+                    </div>
+                    <div>
+                        <div style="font-weight: 600;">{{ attendance.user.get_full_name|default:attendance.user.username }}</div>
+                        <div style="font-size: 0.8rem; color: #666;">Confirmado: {{ attendance.confirmed_at|date:"d/m/Y H:i" }}</div>
+                    </div>
+                </li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p style="text-align: center; color: #666; padding: 2rem 0;">Aún no hay asistentes confirmados para esta reunión.</p>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+
+<script>
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // Cerrar al hacer clic fuera del modal
+    window.onclick = function(event) {
+        if (event.target.id && event.target.id.startsWith('attendees-modal-')) {
+            event.target.style.display = 'none';
+        }
+    }
+</script>
 {% endblock %}

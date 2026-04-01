@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex-between mb-4">
+    <h1>Mi Perfil</h1>
+    <a href="{% url 'user_dashboard' %}" class="btn btn-secondary">Volver al Dashboard</a>
+</div>
+
+<div class="grid grid-cols-2">
+    <!-- Columna Izquierda: Datos Básicos -->
+    <div class="card">
+        <h3>Datos de Cuenta</h3>
+        <p class="text-muted mb-4">Información básica y correo electrónico.</p>
+        
+        <form method="post" action="{% url 'profile_edit' %}">
+            {% csrf_token %}
+            <div class="form-group mb-4">
+                <label>Nombre Completo</label>
+                <input type="text" value="{{ user.get_full_name }}" disabled>
+            </div>
+            
+            <div class="form-group mb-4">
+                <label>DNI/NIE/NIF</label>
+                <input type="text" value="{{ user.dni }}" disabled>
+            </div>
+            
+            <div class="form-group mb-4">
+                <label for="email">Correo Electrónico Actualizable</label>
+                <input type="email" name="email" id="email" value="{{ user.email }}" required>
+            </div>
+            
+            <button type="submit" name="update_email" class="btn btn-primary" style="width: 100%;">Actualizar Correo</button>
+        </form>
+    </div>
+
+    <!-- Columna Derecha: Contraseña -->
+    <div class="card">
+        <h3>Cambiar Contraseña</h3>
+        <p class="text-muted mb-4">Actualiza tu contraseña periódicamente.</p>
+        
+        <form method="post" action="{% url 'profile_edit' %}">
+            {% csrf_token %}
+            {% for field in pwd_form %}
+            <div class="form-group mb-4">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <small class="text-muted" style="display: block; margin-top: 0.25rem;">{{ field.help_text|safe }}</small>
+                {% endif %}
+                {% for error in field.errors %}
+                    <small class="text-danger" style="display: block; color: var(--danger); margin-top: 0.25rem;">{{ error }}</small>
+                {% endfor %}
+            </div>
+            {% endfor %}
+            <button type="submit" name="update_password" class="btn btn-primary" style="width: 100%;">Cambiar Contraseña</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

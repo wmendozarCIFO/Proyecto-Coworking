@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card mx-auto" style="max-width: 500px; padding: 2rem;">
+    <h2 class="text-center mb-4">Verificación de Seguridad</h2>
+    <p class="text-center text-muted mb-4">Para acceder a tu perfil y poder editar tus datos sensibles, debes confirmar tu código de doble factor de autenticación (2FA).</p>
+    
+    <form method="post" action="{% url 'profile_verify_2fa' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="token">Token 2FA</label>
+            <input type="text" name="token" id="token" class="form-control" autocomplete="off" autofocus required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Verificar</button>
+    </form>
+</div>
+{% endblock %}

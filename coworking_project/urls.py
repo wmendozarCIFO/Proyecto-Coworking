@@ -39,5 +39,8 @@ urlpatterns = [
     path('admin-users/edit/<int:user_id>/', core_views.admin_user_edit, name='admin_user_edit'),
     path('admin-users/delete/<int:user_id>/', core_views.admin_user_delete, name='admin_user_delete'),
     
+    path('profile/', core_views.profile_edit, name='profile_edit'),
+    path('profile/verify-2fa/', core_views.profile_verify_2fa, name='profile_verify_2fa'),
+    
     path('bookings/', include('bookings.urls')),
 ]
